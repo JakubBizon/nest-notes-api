@@ -1,0 +1,6 @@
+allowBuilds:
+  '@parcel/watcher': true
+  ejs: false
+  esbuild: set this to true or false
+  highlight.js: false
+  unrs-resolver: true
