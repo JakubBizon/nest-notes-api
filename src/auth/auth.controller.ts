@@ -14,6 +14,8 @@ import { CurrentUser } from './decorators/current-user.decorator';
 import type { AuthUser } from './types/auth-user';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshDto } from './dto/refresh.dto';
+import { RolesGuard } from './guards/role.guard';
+import { Roles } from './decorators/roles.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -47,5 +49,12 @@ export class AuthController {
   @Get('me')
   me(@CurrentUser() user: AuthUser) {
     return user;
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get('admin-check')
+  adminCheck() {
+    return { ok: true };
   }
 }
