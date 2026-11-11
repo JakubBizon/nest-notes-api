@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { NotesService } from './notes.service';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -18,5 +26,13 @@ export class NotesController {
   @Get()
   getAll(@CurrentUser() user: AuthUser) {
     return this.notesService.findAllByUser(user.id);
+  }
+
+  @Get(':id')
+  findOne(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.notesService.findOneByUser(user.id, id);
   }
 }

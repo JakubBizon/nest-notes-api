@@ -24,4 +24,16 @@ export class NotesService {
       .where(eq(notes.userId, userId))
       .orderBy(desc(notes.createdAt));
   }
+
+  async findOneByUser(userId: string, id: string): Promise<Note> {
+    const [note] = await this.db
+      .select()
+      .from(notes)
+      .where(and(eq(notes.id, id), eq(notes.userId, userId)));
+
+    if (!note) {
+      throw new NotFoundException('Note not found');
+    }
+    return note;
+  }
 }
