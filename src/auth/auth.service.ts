@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import { LoginDto } from './dto/login.dto';
 import { User } from '../database/schema';
 import { randomUUID } from 'crypto';
+import { RefreshDto } from './dto/refresh.dto';
 
 @Injectable()
 export class AuthService {
@@ -45,13 +46,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const tokens = await this.issueTokens(user);
-    await this.usersService.setRefreshTokenHash(
-      user.id,
-      await argon2.hash(tokens.refreshToken),
-    );
-
-    return tokens;
+    return this.startSession(user);
   }
 
   private async issueTokens(user: User) {
@@ -73,5 +68,46 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  async refresh(dto: RefreshDto) {
+    let payload: { sub: string };
+
+    try {
+      payload = await this.jwtService.verifyAsync(dto.refreshToken, {
+        secret: this.config.getOrThrow<string>('JWT_REFRESH_SECRET'),
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const user = await this.usersService.findById(payload.sub);
+    if (!user || !user.refreshTokenHash) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const matches = await argon2.verify(
+      user.refreshTokenHash,
+      dto.refreshToken,
+    );
+    if (!matches) {
+      await this.usersService.setRefreshTokenHash(user.id, null);
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    return this.startSession(user);
+  }
+
+  async logout(userId: string) {
+    await this.usersService.setRefreshTokenHash(userId, null);
+  }
+
+  private async startSession(user: User) {
+    const tokens = await this.issueTokens(user);
+    await this.usersService.setRefreshTokenHash(
+      user.id,
+      await argon2.hash(tokens.refreshToken),
+    );
+    return tokens;
   }
 }
