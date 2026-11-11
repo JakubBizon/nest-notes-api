@@ -18,6 +18,19 @@ export class NotesService {
     return note;
   }
 
+  async delete(userId: string, id: string) {
+    const [note] = await this.db
+      .delete(notes)
+      .where(and(eq(notes.id, id), eq(notes.userId, userId)))
+      .returning();
+
+    if (!note) {
+      throw new NotFoundException('Note not found');
+    }
+
+    return note;
+  }
+
   findAllByUser(userId: string): Promise<Note[]> {
     return this.db
       .select()

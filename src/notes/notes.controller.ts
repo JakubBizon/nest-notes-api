@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -23,6 +24,14 @@ export class NotesController {
   @Post()
   create(@CurrentUser() user: AuthUser, @Body() dto: CreateNoteDto) {
     return this.notesService.create(user.id, dto);
+  }
+
+  @Delete(':id')
+  delete(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.notesService.delete(user.id, id);
   }
 
   @Get()
