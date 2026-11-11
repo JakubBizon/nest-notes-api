@@ -30,4 +30,11 @@ export class UsersService {
       .limit(1);
     return user;
   }
+
+  async setRefreshTokenHash(id: string, hash: string | null): Promise<void> {
+    await this.db
+      .update(users)
+      .set({ refreshTokenHash: hash, updatedAt: new Date() })
+      .where(eq(users.id, id));
+  }
 }
