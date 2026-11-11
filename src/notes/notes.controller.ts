@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -12,6 +13,7 @@ import { NotesService } from './notes.service';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthUser } from '../auth/types/auth-user';
 import { CreateNoteDto } from './dto/create-note.dto';
+import { UpdateNoteDto } from './dto/update-note.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('notes')
@@ -34,5 +36,14 @@ export class NotesController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.notesService.findOneByUser(user.id, id);
+  }
+
+  @Patch(':id')
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateNoteDto,
+  ) {
+    return this.notesService.updateNoteByUser(user.id, id, dto);
   }
 }

@@ -3,6 +3,7 @@ import { type Database, DRIZZLE } from '../database/database.constants';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { Note, notes } from '../database/schema';
 import { and, desc, eq } from 'drizzle-orm';
+import { UpdateNoteDto } from './dto/update-note.dto';
 
 @Injectable()
 export class NotesService {
@@ -35,5 +36,23 @@ export class NotesService {
       throw new NotFoundException('Note not found');
     }
     return note;
+  }
+
+  async updateNoteByUser(
+    userId: string,
+    id: string,
+    dto: UpdateNoteDto,
+  ): Promise<Note> {
+    const [updatedNote] = await this.db
+      .update(notes)
+      .set({ ...dto, updatedAt: new Date() })
+      .where(and(eq(notes.userId, userId), eq(notes.id, id)))
+      .returning();
+
+    if (!updatedNote) {
+      throw new NotFoundException('Note not found');
+    }
+
+    return updatedNote;
   }
 }
